@@ -1,9 +1,3 @@
-### Data Analysis & Statistics: Hydrological & Spatial Data Analytics
-
-This repository contains data analysis workflows, statistical modeling, and geospatial processing pipelines developed during my Master's studies in Hydro Science and Engineering at TU Dresden (Institute of Hydrology and Meteorology).
-
----
-
 ### Key Projects & Focus Areas
 
 #### 1. Comparative Analysis of Air Temperature Trends (2005–2025)
@@ -13,10 +7,8 @@ This repository contains data analysis workflows, statistical modeling, and geos
 
 #### 2. Statistical Analysis of River Discharge: Elbe River
 * **Objective:** Characterize long-term flow regimes, evaluate extreme flood events, and contrast wet versus dry hydrological years using historical discharge records (since 1806).
-* **Methodology:** Evaluated discharge distribution transformations (log-normal, shifted log-transform), performed Extreme Value Analysis (EVA) to estimate the 100-year flood (Q100), and analyzed seasonal cumulative sums and density distributions.
-* **Key Findings:** The log-normal EVA model estimated a theoretical 100-year flood of 4,634 m^3 s^-1 (compared to an empirical 4,409 m^3 s^-1), providing a robust safety margin for flood risk management. Contrast analyses between extreme years (e.g., 1941/2002 wet years vs. 1864/1943 dry years) highlighted distinct seasonal hydrograph behaviors.
-
----
+* **Methodology:** Evaluated discharge distribution transformations (log-normal, shifted log-transform), performed Extreme Value Analysis (EVA) to estimate the 100-year flood (Q<sub>100</sub>), and analyzed seasonal cumulative sums and density distributions.
+* **Key Findings:** The log-normal EVA model estimated a theoretical 100-year flood of 4,634 m<sup>3</sup>·s<sup>-1</sup> (compared to an empirical 4,409 m<sup>3</sup>·s<sup>-1</sup>), providing a robust safety margin for flood risk management. Contrast analyses between extreme years (e.g., 1941/2002 wet years vs. 1864/1943 dry years) highlighted distinct seasonal hydrograph behaviors.
 
 ### Repository Contents & Reports
 * 📄 [Comparative Analysis of Air Temperature Trends.pdf](Comparative%20Analysis%20of%20Air%20Temperature%20Trends.pdf): Full DWD climate data analysis report with Sen's slope calculations and trend visualizations.
