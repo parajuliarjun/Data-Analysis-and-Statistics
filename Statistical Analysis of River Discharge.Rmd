@@ -1,0 +1,289 @@
+---
+title: "Group 15 - Statistics Project"
+author: "Fashli Adli Wal Ikhsan, Mana Bala, Arjun Parajuli"
+date: "2025-12-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+River discharge is an important component of the hydrological cycle that governs water availability, ecosystem stability, and flood risk management. In this study, we analyze long-term discharge records of the Elbe River in Dresden to characterize statistical properties of flow, identify extreme hydrological events, and evaluate long-term hydrological variability.
+
+The objectives of this report are: (1) Distribution analysis using raw and transformed data; (2) Extreme Value Analysis to estimate the 100-year flood; (3) Identification of wet and dry hydrological years with seasonal interpretation.
+
+These analyses follow hydrological statistics literature (Coles 2001; Koutsoyiannis 2003). **[1]**
+
+## Method and Results
+
+### Task 1: Distribution of Discharge
+
+```{r , echo=FALSE, include=FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+elbe<-read.csv("https://tpetzoldt.github.io/datasets/data/elbe.csv")
+elbe_1806<-read.csv("https://tpetzoldt.github.io/datasets/data/elbe-1806.csv")
+
+elbe<-mutate (elbe,
+             date=as.Date(date),
+             day=day(date),
+             month=month(date),
+             year=year(date),
+             doy=yday(date))
+
+elbe_1806<-mutate (elbe_1806,
+             date=as.Date(date),
+             day=day(date),
+             month=month(date),
+             year=year(date),
+             doy=yday(date))
+
+
+```
+
+#### 1.1 Compare Distribution Models
+
+We evaluated four histogram-based distribution models: raw discharge, log-transformed discharge ln(x), shifted log-transformed discharge ln(x − b), and raw discharge with finer binning.
+
+The shift parameter b must be chosen so that (x − b) remains positive and minimizes skewness.
+
+1.  Distribution histogram without transformation
+
+2.  Distribution histogram with ln(x) transformation
+
+3.  Distribution histogram with ln(x-B) transformation
+
+4.  Distribution histogram without transformation, but with finer binning (50 brakes)
+
+Here are the visualization of the histograms:
+
+```{r , echo=FALSE ,  fig.width=9}
+par(mfrow=c(2,2))
+hist(elbe$discharge,main="Elbe Discharge ",xlab="Discharge (m^3 s^-1)", col="lightblue")
+hist(log(elbe$discharge),main="Elbe Discharge in Log Scale",xlab="Log Discharge", col="lightblue")
+hist(log(elbe$discharge-0.9*min(elbe$discharge)),main="Shifted Elbe Discharge in Log Scale",xlab="Log Discharge", col="lightblue")
+hist(elbe$discharge,breaks=50,main="Elbe Discharge With Finer Binning",xlab="Discharge (m^3 s^-1)", col="lightblue")
+```
+
+To understand more about the data, we also made a compact table with statistical parameters for the observational period, including min value, max value, mean, standard deviation, median, geometric mean, and quartiles
+
+```{r , echo=FALSE}
+
+dis_min <- min(elbe$discharge)
+dis_q1 <- quantile(elbe$discharge,0.25)
+dis_med <- quantile(elbe$discharge,0.5)
+dis_q3 <- quantile(elbe$discharge,0.75)
+dis_max <- max(elbe$discharge)
+dis_mean <- mean(elbe$discharge)
+dis_sd <- sd(elbe$discharge)
+dis_geo_mean <- exp(mean(log(elbe$discharge[elbe$discharge>0])))
+
+dis_summary <- data.frame(
+  Parameters = c("Min","Q1","Median","Q3","Max","Mean","SD","Geometric Mean"),
+  Value = c(dis_min, dis_q1, dis_med, dis_q3, dis_max, dis_mean, dis_sd, dis_geo_mean)
+)
+
+dis_summary
+```
+
+#### 1.2 Extreme Value Analysis
+
+```{r , echo=FALSE}
+
+year_max <- elbe_1806 %>%
+  group_by(year) %>%
+  summarize(max_flow = max(discharge))
+
+```
+
+Here, we used the extended data (from 1806) to make the estimation more reliable. Firstly, we made distribution histogram as follows:
+
+1.  Distribution histogram without any transformation
+
+2.  Distribution histogram with ln(x) transformation
+
+Here are the visualization of the histograms:
+
+```{r , echo=FALSE, fig.width = 9}
+par(mfrow=c(1,2))
+
+hist(elbe_1806$discharge,xlab="Discharge (m^3 s^-1)",main="Elbe Discharge (since 1806)", col="lightblue")
+hist(log(elbe_1806$discharge),xlab="Log Discharge", main="Elbe Discharge in Log Sacle (since 1806)", col="lightblue")
+
+```
+
+After the visualization, we calculated the theoretical 99th percentile in the logarithmic scale
+
+```{r , echo=TRUE}
+mean_log<-mean(log(year_max$max_flow))
+sd_log<-sd(log(year_max$max_flow))
+log_Q100 <- qnorm (0.99, mean=mean_log, sd=sd_log)
+log_Q100
+```
+
+And then we returned it to the original scale
+
+```{r , echo=TRUE}
+
+est_Q100 <- exp(log_Q100)
+est_Q100
+
+```
+
+Then we also calculated the empirical 99th percentile
+
+```{r , echo=TRUE}
+emp_Q100 <- quantile(year_max$max_flow,0.99)
+emp_Q100
+```
+
+### Task 2: Dry and Wet Years
+
+In this second task, we identified 2 dry and 2 wet years. Using the data, we calculated the annual sum of discharge for every year.
+
+```{r , echo=FALSE }
+annual_sums <- elbe_1806 %>%
+  group_by(year) %>%
+  summarize(total_per_year = sum(discharge)) %>%
+  arrange(desc(total_per_year))
+```
+
+Then we identify the 5 wettest years and 5 driest year
+
+```{r , echo=TRUE}
+head(annual_sums,5)
+```
+
+```{r, echo =TRUE}
+tail(annual_sums, 5)
+
+```
+
+Based on the data, the top 5 wettest years are 1941, 2002, 1926, 1981, and 1987. And the top 5 driest years are 1943, 1864, 1874, 1873, and 1934.
+
+We chose 1941 and 2002 for the wettest years and 1943 and 1864 as the driest years and plot it in a time series graph as follows
+
+```{r , echo=FALSE , fig.width=9}
+plot(discharge~doy,data=elbe_1806,subset= year==1941, col="blue", type="l", xlab="Day of Year", ylab="Discharge")
+lines(discharge~doy,data=elbe_1806,subset= year==2002, col="blue", type="l")
+lines(discharge~doy,data=elbe_1806,subset= year==1943, col="red", type="l")
+lines(discharge~doy,data=elbe_1806,subset= year==1864, col="red", type="l")
+
+```
+
+Wet years (1941, 2002) showed pronounced seasonal peaks, while dry years (1943, 1864) exhibited continuously low flows across seasons.
+
+Seasonal differences were evaluated using cumulative sums and discharge density curves, confirming clear contrasts in hydrological regimes.
+
+```{r , echo=FALSE}
+
+#Wettest
+year_1941     <- subset(elbe_1806, year == 1941)
+year_1941$cum <- cumsum(year_1941$discharge) * 60*60*24 / 1e6
+
+year_2002     <- subset(elbe_1806, year == 2002)
+year_2002$cum <- cumsum(year_2002$discharge) * 60*60*24 / 1e6
+
+#Driest
+year_1943     <- subset(elbe_1806, year == 1943)
+year_1943$cum <- cumsum(year_1943$discharge) * 60*60*24 / 1e6
+
+year_1864     <- subset(elbe_1806, year == 1864)
+year_1864$cum <- cumsum(year_1864$discharge) * 60*60*24 / 1e6
+```
+
+Here, we also tried to identify the wet and dry years using the cumulative sums for the chosen years, as we can see at the graph as follows:
+
+```{r , echo=FALSE , fig.width=9}
+par(mfrow=c(2,2))
+plot(year_1941$date, year_1941$cum, type="l", col="blue", ylab="Mio m^3", xlab ="")
+plot(year_2002$date, year_2002$cum, type="l", col="blue", ylab="Mio m^3", xlab ="")
+plot(year_1943$date, year_1943$cum, type="l", col="red", ylab="Mio m^3", xlab ="")
+plot(year_1864$date, year_1864$cum, type="l", col="red", ylab="Mio m^3", xlab ="")
+```
+
+Finally, we tried to plot the discharge density to compare between the dry years and the wet years. Here, we compare 1941 vs 1943 and 2002 vs 1864
+
+```{r , echo=FALSE , fig.width=9}
+
+plot_data_1 <- elbe_1806 %>%
+  filter(year %in% c(1941, 1943))
+
+plot_data_1$year <-as.factor(plot_data_1$year)
+
+ggplot(plot_data_1, aes(x=discharge,fill=year)) +
+  geom_density(alpha=0.5) +
+  scale_fill_manual(values = c("1941"="blue","1943"="red")) 
+
+```
+
+```{r , echo=FALSE, fig.width=9}
+par(mfrow=c(1,2))
+
+plot_data_2 <- elbe_1806 %>%
+  filter(year %in% c(2002, 1864))
+
+plot_data_2$year <-as.factor(plot_data_2$year)
+
+ggplot(plot_data_2, aes(x=discharge,fill=year)) +
+  geom_density(alpha=0.5) +
+  scale_fill_manual(values = c("2002"="blue","1864"="red")) 
+
+```
+
+## Discussion
+
+### Task 1: Distribution of Discharge
+
+#### 1.1 Compare Distribution Models
+
+1.  Among the tested transformations, **the shifted log-transformation** ( ln(x-b) ) produced the most symmetric distribution, though normality should be verified using Q–Q plots or statistical tests. By having this, it will be more accurate when we perform parametric tests. Furthermore, this bell shaped distribution make it unbiased because the mean and median align, so it won't be pulled by outliers.
+
+2.  By also looking at the statistical parameters, we can confirm that the raw data is being **pulled by the high extreme values** by looking at the mean (302.1 m^3^ s^-1^) where it is significantly higher than the median (224 m^3^ s^-1^) This is also indicated by the very high difference between the Q3 (360 m^3^ s^-1^) and the Max Value (4500 m^3^ s^-1^).
+
+#### 1.2 Extreme Value Analysis
+
+1.  The fact that the model predict the 100-Year Flood higher than the actual (empirical) data is actually good because it gives us a safety margin just in case the future 100-Year Flood is worse than what have already happened in the history (Model = 4634 m^3^ s^-1^ , Empirical = 4409 m^3^ s^-1^).
+2.  The theoretical HQ100 exceeds the empirical estimate because parametric distributions often model heavier tails than empirical percentiles, reflecting natural statistical uncertainty, rather than intentional safety margin.
+
+### Task 2: Dry and Wet Years
+
+1.  As we can see on the time series graph, the wet years (blue lines) have significantly higher discharge compared to the dry years (red lines)
+
+2.  By just looking at the Y-axis of the cumulative sums graph, we can also confirm that the cumulative discharge in wet years is significantly higher compared to the dry years.
+
+3.  Also, the cumulative discharge slopes in dry years are relatively stable and not changed so much compared to the wet years. As we can see, in the beginning of 1941 (After the winter), the slope is increasing quite significant, indicating that a flood could happen. Also, around August 2002, we can see the slope is changing very dramatically, indicating a high discharge flowed during this time.
+
+4.  The last indicator that tells us the difference between the dry years and the wet years is the discharge density graph. As we can see, in dry years, most of the discharge accumulated on the left and doesn't have a long tail. On the other hand, the discharge in wet years varies from small number until very high number (thousands m^3^ s^-1^)
+
+## Conclusion
+
+This study demonstrated the effectiveness of log-based transformations in modeling heavily skewed hydrological data. The log-normal model provided a reasonable estimate of the 100-year flood. Seasonal discharge patterns helped clarify the dynamics of wet and dry years, underscoring the importance of long-term hydrological monitoring. The findings support water resource management strategies and risk-based planning for the Elbe River.
+
+## References
+
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| RStudio (IDE) | R Core Team (2025). \_R: A Language and Environment for Statistical Computing\_. R Foundation for Statistical Computing, Vienna, Austria. <https://www.R-project.org/>.                           |
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ggplot2       | H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.                                                                                                          |
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| dplyr         | Wickham H, François R, Henry L, Müller K, Vaughan D (2023). \_dplyr: A Grammar of Data Manipulation\_. <doi:10.32614/CRAN.package.dplyr> <https://doi.org/10.32614/CRAN.package.dplyr>, R package |
+|               |                                                                                                                                                                                                   |
+|               | version 1.1.4, <https://CRAN.R-project.org/package=dplyr>.                                                                                                                                        |
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| lubridate     | R Core Team (2025). \_R: A Language and Environment for Statistical Computing\_. R Foundation for Statistical Computing, Vienna, Austria. <https://www.R-project.org/>.                           |
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| tidyverse     | V, Takahashi K, Vaughan D, Wilke C, Woo K, Yutani H (2019). “Welcome to the tidyverse.” Journal of Open Source Software\_, \*4\*(43), 1686. <doi:10.21105/joss.01686>                             |
+|               |                                                                                                                                                                                                   |
+|               | <https://doi.org/10.21105/joss.01686>.                                                                                                                                                            |
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [1]           | Coles, S. (2001). *An Introduction to Statistical Modeling of Extreme Values*. Springer.                                                                                                          |
+|               |                                                                                                                                                                                                   |
+|               | Koutsoyiannis, D. (2003). “Extreme value distributions: Theory and applications to climate extremes.” Hydrological Sciences Journal, 48(3), 375–396.                                              |
++---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
