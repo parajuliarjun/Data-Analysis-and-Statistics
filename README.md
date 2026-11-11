@@ -18,7 +18,9 @@ This repository contains data analysis workflows, statistical modeling, and geos
 
 ---
 
+
 ### Repository Contents & Reports
 * 📄 [Comparative Analysis of Air Temperature Trends.pdf](Comparative%20Analysis%20of%20Air%20Temperature%20Trends.pdf): Full DWD climate data analysis report with Sen's slope calculations and trend visualizations.
 * 📄 [Statistical Analysis of River Discharge.pdf](Statistical%20Analysis%20of%20River%20Discharge.pdf): Comprehensive Elbe River discharge report covering distribution transformations, EVA, and seasonal regime comparisons.
-* `scripts/`: Modular R scripts for data processing, statistical testing, and automated plotting (ggplot2).
+* 📝 [Comparative Analysis of Air Temperature Trends.Rmd](Comparative%20Analysis%20of%20Air%20Temperature%20Trends.Rmd): Source R Markdown file containing the air temperature analysis workflow and code.
+* 📝 [Statistical Analysis of River Discharge.Rmd](Statistical%20Analysis%20of%20River%20Discharge.Rmd): Source R Markdown file containing the Elbe River discharge analysis workflow and code.
